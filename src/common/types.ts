@@ -1,3 +1,4 @@
+
 export interface Listing {
     id: number;
     for_sale: string;
@@ -15,3 +16,5 @@ export type Query = {
     order?: 'asc' | 'desc'| null| undefined,
     sort?: string|null,
 };
+
+  
