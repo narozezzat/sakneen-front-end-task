@@ -8,13 +8,10 @@ export interface Listing {
     bua: number;
 }
 
-export interface SalesPageProps {
-    listings: Listing[];
-}
-
-
 export type Query = {
     page?: number;
-    search?: string;
+    search?: string|null;
     limit?: number;
+    order?: 'asc' | 'desc'| null| undefined,
+    sort?: string|null,
 };

@@ -4,12 +4,10 @@ import Link from "next/link"
 
 const Navbar = () => {
   return (
-    <nav className="" style={{backgroundColor: "#2419be", height: "50px"}}>
-        <div>
+    <nav className="header">
           <Link href="#">
-          <Image src={logo} alt="" style={{height: "40px", width: "40px"}} className=""/>
+            <Image src={logo} alt="" className="navbarImg"/>
           </Link>
-        </div>
     </nav>
   )
 }

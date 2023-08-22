@@ -1,33 +1,65 @@
-import { useEffect, useState } from 'react';
-import { GetStaticProps } from 'next';
-import { Table } from 'antd';
 import { ColumnsType, TablePaginationConfig } from 'antd/lib/table';
-import { Input } from 'antd';
-import Image from 'next/image';
-import { useQueryParam, StringParam, NumberParam, withDefault } from 'use-query-params';
 import { FilterValue } from 'antd/es/table/interface';
+import { Table } from 'antd';
+import { useQueryParams, StringParam, NumberParam, withDefault } from 'use-query-params';
+import React, { useEffect, useState } from 'react';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, TOTAL } from '@/common/constants';
-import { Listing, SalesPageProps } from '@/common/types';
 import { getListings } from '@/ApiRequest/listing';
+import { Listing, Query } from '@/common/types';
+import { GoHomeFill } from 'react-icons/go';
+import 'react-image-lightbox/style.css';
+import LightboxComponent from '../../components/LightBox';
 
 
 
+const OrderMapping: { [key: string]: 'asc' | 'desc' } = {
+  ascend: 'asc',
+  descend: 'desc',
+}
 
-export default function SalesPage({ listings: initialListings }: SalesPageProps) {
-  const [listings, setListings] = useState<Listing[]>(initialListings);
-  const [query, setQuery] = useQueryParam({
+const ReverseOrderMapping: { [key: string]: 'ascend' | 'descend' } = {
+  asc: 'ascend',
+  desc: 'descend'
+}
+
+
+const ListingsPage: React.FC<any> = () => {
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [photos, setPhotos] = useState<string[]>([]);
+  const [query, setQuery] = useQueryParams({
     page: withDefault(NumberParam, DEFAULT_PAGE),
-    search: withDefault(StringParam, null),
     limit: withDefault(NumberParam, DEFAULT_PAGE_SIZE),
-  })
+    _sort: withDefault(StringParam, null),
+    unit_id_like: withDefault(StringParam, null),
+    _order: withDefault(StringParam, null),
+  });
 
-  function handleChangePage(pagination: TablePaginationConfig, _filter: Record<string, FilterValue | null>, _sorter) {
-    // setQuery({page})
-    console.log(pagination);
-  }
+  const handleChangePage = (
+    pagination: TablePaginationConfig,
+    _filter: Record<string, FilterValue | null>,
+    sorter: any
+  ) => {
+    if (pagination?.current) {
+      setQuery({ page: pagination.current });
+    }
 
-  function handleFilter(unitId: string) {
-    setQuery({ search: unitId })
+    if (sorter.field) {
+      setQuery({ _sort: sorter.field, _order: OrderMapping[sorter.order] });
+    }
+  };
+
+  const handleFilter = (unitId: string) => {
+    setQuery({ unit_id_like: unitId });
+  };
+
+  const openLightbox = (photos: string[]) => {
+    setLightboxOpen(true);
+    setPhotos(photos)
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
   };
 
   const columns: ColumnsType<Listing> = [
@@ -35,33 +67,45 @@ export default function SalesPage({ listings: initialListings }: SalesPageProps)
       title: 'Unit ID',
       dataIndex: 'unit_id',
       key: 'unit_id',
+      sorter: true,
+      width: 200,
+      sortOrder: query._sort === 'unit_id' ? ReverseOrderMapping[query._order as unknown as string] : undefined,
     },
     {
       title: 'Unit Type',
       dataIndex: 'unit_type',
       key: 'unit_type',
+      sortOrder: query._sort === 'unit_type' ? ReverseOrderMapping[query._order as unknown as string] : undefined,
+      sorter: true,
+      render: (unit_type) => <span className='capitalize'>{unit_type}</span>
     },
     {
       title: 'Total Price',
       dataIndex: 'total_price',
       key: 'total_price',
-      render: (price) => `${price} EGP`,
+      render: (price) => `${Math.ceil(price).toLocaleString('us')} EGP`,
+      sortOrder: query._sort === 'total_price' ? ReverseOrderMapping[query._order as unknown as string] : undefined,
+      sorter: true,
     },
     {
       title: 'Bulid Up Area',
       dataIndex: 'bua',
       key: 'bua',
+      sorter: true,
       render: (bua) => `${bua} m²`,
+      sortOrder: query._sort === 'bua' ? ReverseOrderMapping[query._order as unknown as string] : undefined,
     },
     {
       title: 'For Sale',
       dataIndex: 'for_sale',
       key: 'for_sale',
       render: (forSale) => (
-        <button className="border p-2 text-sm/[5px] rounded text-white"
-          style={forSale === true ? { backgroundColor: "#2419BE" } : { backgroundColor: "#616161" }}>
-          {forSale ? 'FOR SALE' : 'NOT FOR SALE'}
-        </button>
+        <div className='button-container'>
+          <button className="border p-2 text-sm/[5px] btn rounded text-white"
+            style={forSale === true ? { backgroundColor: "#2419BE" } : { backgroundColor: "#616161" }}>
+            {forSale ? 'FOR SALE' : 'NOT FOR SALE'}
+          </button>
+        </div>
       ),
     },
     {
@@ -69,65 +113,63 @@ export default function SalesPage({ listings: initialListings }: SalesPageProps)
       dataIndex: 'photos',
       key: 'photos',
       render: (photos) => (
-        <Image src={photos[0]} alt="" width={40} height={40} />
-      ),
+        <img src={photos[0] || '/unit.webp'} alt="" onClick={() => openLightbox(photos)} className='img' />
+      )
     },
   ];
 
   useEffect(() => {
-    getListings(query).then((listings) => {
+    getListings(query as unknown as Query).then((listings) => {
       setListings(listings)
     })
   }, [query])
 
-  return (
-    <div className='container max-w-screen-lg mx-auto my-12'>
 
-      <div className="mb-3 text-[24px]">
+  return (
+    <div className='max-w-screen-lg mx-auto my-12'>
+
+      <div className="mb-3 text-[24px] font-semibold">
         <h1>Dashboard</h1>
       </div>
+      <ul className="flex breadcrumb mb-5">
+        <GoHomeFill className='h-6 text-gray-500 w-7' />
+        <li><a href="/" className='ml-2 underline'>Home</a></li>
+        <li><a href="#">Dachboard</a></li>
+      </ul>
 
-      <div className="mb-3 focus:border-black	flex justify-between">
+      <div className="mb-5">
 
-        <label><span className='font-bold'>
-          Filters by ID: </span><input type="text" placeholder="ex: C1-B1-6-1"
-            onChange={(e) => handleFilter(e.target.value)} />
-        </label>
-
-        <label htmlFor="filters">
-          Sort by:
-          <select name="" id="filters" className="mx-2 bg-white font-semibold">
-            <option value="Unit ID">Unit ID</option>
-            <option value="Unit type">Unit type</option>
-            <option value="Unit Price">Unit Price</option>
-          </select>
-        </label>
+        <span className='font-bold mx-2'>
+          Filters by ID:
+        </span>
+        <input type="text" placeholder="ex: C1-B1-6-1"
+          onChange={(e) => handleFilter(e.target.value)} />
 
       </div>
 
-      <Table
-        dataSource={listings}
-        columns={columns}
-        onChange={handleChangePage}
-        pagination={{
-          pageSize: DEFAULT_PAGE_SIZE,
-          current: query.page,
-          total: TOTAL, // this must return from backend
-          className: 'pagination container mx-auto'
-        }}
-      />
-
+      <div className='overflow-x-auto divide-y whitespace-nowrap'>
+        <Table
+          dataSource={listings}
+          columns={columns}
+          onChange={handleChangePage}
+          loading={listings.length === 0}
+          pagination={{
+            pageSize: DEFAULT_PAGE_SIZE,
+            current: query.page,
+            total: TOTAL, // this must return from backend
+            className: 'custom-pagination pagination'
+          }}
+        />
+      </div>
+      {lightboxOpen && (
+        <LightboxComponent
+          photos={photos}
+          onClose={closeLightbox}
+        />
+      )}
     </div>
   );
 }
 
-// fetch data
-export const getStaticProps: GetStaticProps<SalesPageProps> = async () => {
-  const listings: Listing[] = await getListings()
 
-  return {
-    props: {
-      listings,
-    },
-  };
-};
+export default ListingsPage;
