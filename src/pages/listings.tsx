@@ -26,6 +26,7 @@ const ReverseOrderMapping: { [key: string]: 'ascend' | 'descend' } = {
 const ListingsPage: React.FC<any> = () => {
   const [listings, setListings] = useState<Listing[]>([]);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const [photos, setPhotos] = useState<string[]>([]);
   const [query, setQuery] = useQueryParams({
     page: withDefault(NumberParam, DEFAULT_PAGE),
@@ -50,7 +51,7 @@ const ListingsPage: React.FC<any> = () => {
   };
 
   const handleFilter = (unitId: string) => {
-    setQuery({ unit_id_like: unitId });
+    setQuery({ unit_id_like: unitId, page:1 });
   };
 
   const openLightbox = (photos: string[]) => {
@@ -119,8 +120,12 @@ const ListingsPage: React.FC<any> = () => {
   ];
 
   useEffect(() => {
+    setIsLoading(true);
     getListings(query as unknown as Query).then((listings) => {
-      setListings(listings)
+      setListings(listings);
+      setIsLoading(false)
+    }).catch(()=>{
+      setIsLoading(false)
     })
   }, [query])
 
@@ -143,7 +148,7 @@ const ListingsPage: React.FC<any> = () => {
           Filters by ID:
         </span>
         <input type="text" placeholder="ex: C1-B1-6-1"
-          onChange={(e) => handleFilter(e.target.value)} />
+          onChange={(e) => handleFilter(e.target.value)} value={query.unit_id_like as string} />
 
       </div>
 
@@ -152,12 +157,12 @@ const ListingsPage: React.FC<any> = () => {
           dataSource={listings}
           columns={columns}
           onChange={handleChangePage}
-          loading={listings.length === 0}
+          loading={isLoading}
           pagination={{
             pageSize: DEFAULT_PAGE_SIZE,
             current: query.page,
-            total: TOTAL, // this must return from backend
-            className: 'custom-pagination pagination'
+            total: query.unit_id_like ? listings.length: TOTAL, // this must return from backend
+            className: 'custom-pagination pagination' 
           }}
         />
       </div>

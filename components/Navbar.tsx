@@ -1,5 +1,3 @@
-import logo from '../assets/sakneen1.png'
-import Image from "next/image"
 import Link from "next/link"
 
 const Navbar = () => {
