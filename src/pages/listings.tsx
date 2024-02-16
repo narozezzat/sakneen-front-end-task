@@ -134,13 +134,11 @@ const ListingsPage: React.FC<any> = () => {
         <h1>Dashboard</h1>
       </div>
     <div className='max-w-screen-lg mx-auto my-4 bg-white p-4'>
-
       <ul className="flex breadcrumb mb-5 rounded-sm">
         <GoHomeFill className='h-6 text-gray-500 w-6' />
         <li><a href="/" className='ml-2 underline'>Home</a></li>
         <li><a href="#">Dachboard</a></li>
       </ul>
-
       <div className="mb-5 flex items-center">
 
         <span className='font-medium mx-2'>
