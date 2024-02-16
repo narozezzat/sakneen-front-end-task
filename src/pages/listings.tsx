@@ -10,8 +10,6 @@ import { GoHomeFill } from 'react-icons/go';
 import 'react-image-lightbox/style.css';
 import LightboxComponent from '../../components/LightBox';
 
-
-
 const OrderMapping: { [key: string]: 'asc' | 'desc' } = {
   ascend: 'asc',
   descend: 'desc',
@@ -21,7 +19,6 @@ const ReverseOrderMapping: { [key: string]: 'ascend' | 'descend' } = {
   asc: 'ascend',
   desc: 'descend'
 }
-
 
 const ListingsPage: React.FC<any> = () => {
   const [listings, setListings] = useState<Listing[]>([]);
@@ -70,6 +67,7 @@ const ListingsPage: React.FC<any> = () => {
       key: 'unit_id',
       sorter: true,
       width: 200,
+      className: "font-bold underline",
       sortOrder: query._sort === 'unit_id' ? ReverseOrderMapping[query._order as unknown as string] : undefined,
     },
     {
@@ -97,20 +95,20 @@ const ListingsPage: React.FC<any> = () => {
       sortOrder: query._sort === 'bua' ? ReverseOrderMapping[query._order as unknown as string] : undefined,
     },
     {
-      title: 'For Sale',
+      title:  <span className="font-bold">For Sale</span>,
       dataIndex: 'for_sale',
       key: 'for_sale',
       render: (forSale) => (
         <div className='button-container'>
           <button className="border p-2 text-sm/[5px] btn rounded text-white"
-            style={forSale === true ? { backgroundColor: "#2419BE" } : { backgroundColor: "#616161" }}>
+            style={forSale === true ? { backgroundColor: "#2419BE", fontSize: "9px" } : { backgroundColor: "#616161", fontSize: "9px" }}>
             {forSale ? 'FOR SALE' : 'NOT FOR SALE'}
           </button>
         </div>
       ),
     },
     {
-      title: 'Gallery',
+      title:  <span className="font-bold">Gallery</span>,
       dataIndex: 'photos',
       key: 'photos',
       render: (photos) => (
@@ -131,23 +129,24 @@ const ListingsPage: React.FC<any> = () => {
 
 
   return (
-    <div className='max-w-screen-lg mx-auto my-12'>
-
-      <div className="mb-3 text-[24px] font-semibold">
+   <>
+     <div className="max-w-screen-lg mt-2 mx-auto text-[1.5rem] font-bold">
         <h1>Dashboard</h1>
       </div>
-      <ul className="flex breadcrumb mb-5">
-        <GoHomeFill className='h-6 text-gray-500 w-7' />
+    <div className='max-w-screen-lg mx-auto my-4 bg-white p-4'>
+
+      <ul className="flex breadcrumb mb-5 rounded-sm">
+        <GoHomeFill className='h-6 text-gray-500 w-6' />
         <li><a href="/" className='ml-2 underline'>Home</a></li>
         <li><a href="#">Dachboard</a></li>
       </ul>
 
-      <div className="mb-5">
+      <div className="mb-5 flex items-center">
 
-        <span className='font-bold mx-2'>
+        <span className='font-medium mx-2'>
           Filters by ID:
         </span>
-        <input type="text" placeholder="ex: C1-B1-6-1"
+        <input type="text" className='text-sm rounded-sm flex-1' placeholder="ex: C1-B1-6-1"
           onChange={(e) => handleFilter(e.target.value)} value={query.unit_id_like as string} />
 
       </div>
@@ -173,6 +172,7 @@ const ListingsPage: React.FC<any> = () => {
         />
       )}
     </div>
+   </>
   );
 }
 
